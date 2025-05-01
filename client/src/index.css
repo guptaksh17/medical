@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    
+    --primary: 210 79% 46%;
+    --primary-foreground: 210 40% 98%;
+    
+    --secondary: 144 38% 40%;
+    --secondary-foreground: 355 100% 100%;
+    
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    
+    --accent: 16 94% 54%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222 47% 11%;
+    
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    
+    --primary: 210 79% 46%;
+    --primary-foreground: 210 40% 98%;
+    
+    --secondary: 144 38% 40%;
+    --secondary-foreground: 210 40% 98%;
+    
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    
+    --accent: 16 94% 54%;
+    --accent-foreground: 210 40% 98%;
+    
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .appt-status-pending {
+    @apply bg-orange-50 text-orange-600 px-2 py-1 text-xs rounded-full;
+  }
+  
+  .appt-status-confirmed {
+    @apply bg-green-50 text-green-600 px-2 py-1 text-xs rounded-full;
+  }
+  
+  .appt-status-cancelled {
+    @apply bg-red-50 text-red-600 px-2 py-1 text-xs rounded-full;
+  }
+  
+  .rating-stars {
+    @apply text-gray-300 relative inline-block;
+  }
+  
+  .rating-stars .filled-stars {
+    @apply text-yellow-400 absolute left-0 top-0 overflow-hidden whitespace-nowrap;
+  }
+}
