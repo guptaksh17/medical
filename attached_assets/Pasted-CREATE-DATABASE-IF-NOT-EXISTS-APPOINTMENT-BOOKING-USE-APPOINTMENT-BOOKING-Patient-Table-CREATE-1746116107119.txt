@@ -1,0 +1,210 @@
+CREATE DATABASE IF NOT EXISTS APPOINTMENT_BOOKING;
+USE APPOINTMENT_BOOKING;
+
+-- Patient Table
+CREATE TABLE Patient (
+    Patient_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(255),
+    Blood_Group VARCHAR(10),
+    DOB DATE,
+    Address TEXT,
+    Phone VARCHAR(10),
+    Email VARCHAR(255) UNIQUE,
+    CONSTRAINT chk_phone_digits CHECK (Phone REGEXP '^[0-9]{10}$')
+);
+
+-- Doctor Table
+CREATE TABLE Doctor (
+    Doctor_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(255),
+    Phone VARCHAR(10),
+    Address TEXT,
+    Expertise VARCHAR(100),
+    Experience INT,
+    Gender VARCHAR(10)
+);
+
+-- Appointment Table
+CREATE TABLE Appointment (
+    Appointment_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Patient_ID INT,
+    Doctor_ID INT,
+    Specialization VARCHAR(100),
+    Date DATE,
+    Time TIME,
+    Status ENUM('Pending', 'Confirmed', 'Cancelled') DEFAULT 'Pending',
+    FOREIGN KEY (Patient_ID) REFERENCES Patient(Patient_ID),
+    FOREIGN KEY (Doctor_ID) REFERENCES Doctor(Doctor_ID)
+);
+
+-- Schedule Table (Mapping Appointment and Patient)
+CREATE TABLE Schedule (
+    Appointment_ID INT,
+    Patient_ID INT,
+    PRIMARY KEY (Appointment_ID, Patient_ID),
+    FOREIGN KEY (Appointment_ID) REFERENCES Appointment(Appointment_ID) ON DELETE CASCADE,
+    FOREIGN KEY (Patient_ID) REFERENCES Patient(Patient_ID) ON DELETE CASCADE
+);
+
+-- Feedback Table
+CREATE TABLE Feedback (
+    Feedback_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Appointment_ID INT,
+    Given_By ENUM('Patient', 'Doctor'),
+    Given_By_ID INT,
+    Receiver_ID INT,
+    Receiver_Type ENUM('Doctor', 'Patient'),
+    Comments TEXT,
+    Rating INT CHECK (Rating BETWEEN 1 AND 5),
+    Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (Appointment_ID) REFERENCES Appointment(Appointment_ID)
+);
+
+-- Admin Table
+CREATE TABLE Admin (
+    Admin_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Username VARCHAR(50) UNIQUE NOT NULL,
+    Password VARCHAR(255) NOT NULL -- hashed password
+);
+
+-- Create Admin User
+CREATE USER IF NOT EXISTS 'rudraksh_admin'@'localhost' IDENTIFIED WITH caching_sha2_password BY 'Kshsrm@1';
+GRANT ALL PRIVILEGES ON APPOINTMENT_BOOKING.* TO 'rudraksh_admin'@'localhost';
+FLUSH PRIVILEGES;
+
+-- Insert Admin credentials
+INSERT INTO Admin (Username, Password) 
+VALUES ('rudraksh_admin', SHA2('RUDRAKSH2005.', 256));
+
+-- Insert Sample Data
+INSERT INTO Patient (Name, Blood_Group, DOB, Address, Phone, Email) VALUES
+('Rahul Sharma', 'O+', '1995-07-12', 'Mumbai, India', '9876543210', 'rahul.sharma@example.com'),
+('Ayesha Khan', 'A-', '1992-04-25', 'Delhi, India', '8765432109', 'ayesha.khan@example.com'),
+('Vikram Singh', 'B+', '1988-10-08', 'Bangalore, India', '7654321098', 'vikram.singh@example.com'),
+('Meera Iyer', 'AB+', '1996-01-15', 'Chennai, India', '6543210987', 'meera.iyer@example.com'),
+('Sandeep Verma', 'A+', '1985-06-30', 'Pune, India', '5432109876', 'sandeep.verma@example.com');
+
+INSERT INTO Doctor (Name, Phone, Address, Expertise, Experience, Gender) VALUES
+('Dr. Arjun Kapoor', '9123456789', 'Delhi, India', 'Cardiology', 15, 'Male'),
+('Dr. Neha Malhotra', '9234567890', 'Mumbai, India', 'Dermatology', 10, 'Female'),
+('Dr. Ravi Gupta', '9345678901', 'Bangalore, India', 'Orthopedics', 12, 'Male'),
+('Dr. Sunita Desai', '9456789012', 'Chennai, India', 'Pediatrics', 8, 'Female'),
+('Dr. Anil Joshi', '9567890123', 'Pune, India', 'General Medicine', 20, 'Male');
+
+INSERT INTO Appointment (Patient_ID, Doctor_ID, Specialization, Date, Time, Status) VALUES
+(1, 1, 'Cardiology', '2025-03-10', '10:30:00', 'Confirmed'),
+(2, 2, 'Dermatology', '2025-03-11', '14:00:00', 'Confirmed'),
+(3, 3, 'Orthopedics', '2025-03-12', '09:00:00', 'Cancelled'),
+(4, 4, 'Pediatrics', '2025-03-13', '11:15:00', 'Confirmed'),
+(5, 5, 'General Medicine', '2025-03-14', '16:30:00', 'Confirmed'),
+(1, 3, 'Orthopedics', '2025-03-15', '10:45:00', 'Confirmed'),
+(2, 4, 'Pediatrics', '2025-03-16', '13:30:00', 'Confirmed'),
+(3, 5, 'General Medicine', '2025-03-17', '15:00:00', 'Cancelled'),
+(4, 1, 'Cardiology', '2025-03-18', '12:00:00', 'Confirmed'),
+(5, 2, 'Dermatology', '2025-03-19', '14:45:00', 'Confirmed');
+
+INSERT INTO Schedule (Appointment_ID, Patient_ID) VALUES
+(1, 1),
+(2, 2),
+(4, 4),
+(5, 5),
+(6, 1),
+(7, 2),
+(9, 4),
+(10, 5);
+
+INSERT INTO Feedback (Appointment_ID, Given_By, Given_By_ID, Receiver_ID, Receiver_Type, Comments, Rating) VALUES
+(1, 'Patient', 1, 1, 'Doctor', 'Very knowledgeable and helpful doctor!', 5),
+(2, 'Patient', 2, 2, 'Doctor', 'Great experience, highly recommended.', 4),
+(4, 'Patient', 4, 4, 'Doctor', 'Very friendly and patient with my child.', 5),
+(5, 'Patient', 5, 5, 'Doctor', 'Professional and efficient service.', 4),
+(6, 'Patient', 1, 3, 'Doctor', 'Doctor was a bit late but treatment was good.', 3),
+(7, 'Patient', 2, 4, 'Doctor', 'Explained everything clearly, very satisfied.', 5),
+(9, 'Patient', 4, 1, 'Doctor', 'Excellent diagnosis and treatment.', 5),
+(10, 'Patient', 5, 2, 'Doctor', 'Good experience overall.', 4);
+
+-- Views
+CREATE OR REPLACE VIEW Upcoming_Confirmed_Appointments AS
+SELECT 
+    A.Appointment_ID, 
+    P.Name AS Patient_Name, 
+    D.Name AS Doctor_Name, 
+    A.Date, 
+    A.Time
+FROM Appointment A
+JOIN Patient P ON A.Patient_ID = P.Patient_ID
+JOIN Doctor D ON A.Doctor_ID = D.Doctor_ID
+WHERE A.Status = 'Confirmed' AND A.Date >= CURDATE();
+
+-- Triggers
+DELIMITER //
+
+CREATE TRIGGER insert_schedule_after_appointment
+AFTER INSERT ON Appointment
+FOR EACH ROW
+BEGIN
+    IF NEW.Status = 'Confirmed' THEN
+        INSERT INTO Schedule (Appointment_ID, Patient_ID)
+        VALUES (NEW.Appointment_ID, NEW.Patient_ID);
+    END IF;
+END;
+//
+
+CREATE TRIGGER prevent_doctor_double_booking
+BEFORE INSERT ON Appointment
+FOR EACH ROW
+BEGIN
+    DECLARE appointment_exists INT;
+
+    SELECT COUNT(*) INTO appointment_exists
+    FROM Appointment
+    WHERE Doctor_ID = NEW.Doctor_ID
+      AND Date = NEW.Date
+      AND Time = NEW.Time
+      AND Status = 'Confirmed';
+
+    IF appointment_exists > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Doctor is busy on this date and time. Please select another slot.';
+    END IF;
+END;
+//
+
+DELIMITER ;
+
+-- Procedure
+DELIMITER //
+
+CREATE PROCEDURE UpdateExperienceForTopDoctors()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE doc_id INT;
+    DECLARE cur CURSOR FOR 
+        SELECT DISTINCT Receiver_ID 
+        FROM Feedback 
+        WHERE Rating = 5 
+        AND Receiver_ID NOT IN (
+            SELECT Receiver_ID FROM Feedback WHERE Rating < 5
+        );
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO doc_id;
+        IF done THEN 
+            LEAVE read_loop;
+        END IF;
+
+        UPDATE Doctor SET Experience = Experience + 1
+        WHERE Doctor_ID = doc_id;
+    END LOOP;
+
+    CLOSE cur;
+END;
+//
+
+DELIMITER ;
+
+-- Call the procedure if needed
+-- CALL UpdateExperienceForTopDoctors();
