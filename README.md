@@ -1,4 +1,4 @@
-# Appointment Scheduler
+# Medical Appointment Scheduler
 
 A web application for scheduling appointments between patients and doctors.
 
@@ -6,7 +6,7 @@ A web application for scheduling appointments between patients and doctors.
 
 - Patient management
 - Doctor management
-- Appointment scheduling
+- Appointment scheduling with double-booking prevention
 - Feedback system
 - Admin dashboard
 - Authentication and authorization
@@ -42,8 +42,8 @@ FLUSH PRIVILEGES;
 1. Clone the repository:
 
 ```bash
-git clone <repository-url>
-cd appointment-scheduler
+git clone https://github.com/guptaksh17/medical.git
+cd medical
 ```
 
 2. Install dependencies:
@@ -152,11 +152,3 @@ The application uses the following database schema:
 - **Schedule**: Maps appointments to patients
 - **Feedback**: Stores feedback given by patients to doctors
 - **Admin**: Stores admin user credentials
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
