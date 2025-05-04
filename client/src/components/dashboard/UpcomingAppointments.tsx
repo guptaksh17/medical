@@ -8,10 +8,27 @@ import { Button } from "@/components/ui/button";
 import { AppointmentWithRelations } from "@/types";
 import { formatDate, formatTime } from "@/lib/utils/date-utils";
 import { Loader2 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function UpcomingAppointments() {
-  const { data: appointments, isLoading } = useQuery<AppointmentWithRelations[]>({
+  const { token } = useAuth();
+
+  const { data: appointments, isLoading, error } = useQuery<AppointmentWithRelations[]>({
     queryKey: ['/api/appointments/upcoming'],
+    queryFn: async () => {
+      console.log('Fetching upcoming appointments...');
+      try {
+        const response = await apiRequest('GET', '/api/appointments/upcoming');
+        const data = await response.json();
+        console.log('Upcoming appointments data:', data);
+        return data;
+      } catch (error) {
+        console.error('Failed to fetch upcoming appointments:', error);
+        throw error;
+      }
+    },
+    enabled: !!token
   });
 
   return (
@@ -23,6 +40,10 @@ export function UpcomingAppointments() {
         {isLoading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : error ? (
+          <div className="text-center py-8 text-red-500">
+            Error loading appointments: {(error as Error).message}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -64,12 +85,12 @@ export function UpcomingAppointments() {
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Link href={`/appointments/edit/${appointment.id}`}>
+                          <Link href={`/admin/appointments/edit/${appointment.id}`}>
                             <Button variant="link" size="sm" className="text-primary">
                               Edit
                             </Button>
                           </Link>
-                          <Link href={`/appointments/cancel/${appointment.id}`}>
+                          <Link href={`/admin/appointments/edit/${appointment.id}`}>
                             <Button variant="link" size="sm" className="text-destructive">
                               Cancel
                             </Button>
@@ -88,7 +109,7 @@ export function UpcomingAppointments() {
               </TableBody>
             </Table>
             <div className="mt-4 text-right">
-              <Link href="/appointments">
+              <Link href="/admin/appointments">
                 <Button variant="link" className="text-primary font-medium hover:text-primary-600">
                   View all appointments →
                 </Button>

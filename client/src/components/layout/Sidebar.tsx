@@ -1,7 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
 import {
-  LayoutDashboard,
   Calendar,
   Users,
   UserCircle,
@@ -14,32 +13,27 @@ export function Sidebar() {
 
   const navItems = [
     {
-      path: "/",
-      name: "Dashboard",
-      icon: <LayoutDashboard className="h-5 w-5" />,
-    },
-    {
-      path: "/appointments",
+      path: "/admin/appointments",
       name: "Appointments",
       icon: <Calendar className="h-5 w-5" />,
     },
     {
-      path: "/patients",
+      path: "/admin/patients",
       name: "Patients",
       icon: <Users className="h-5 w-5" />,
     },
     {
-      path: "/doctors",
+      path: "/admin/doctors",
       name: "Doctors",
       icon: <UserCircle className="h-5 w-5" />,
     },
     {
-      path: "/feedback",
+      path: "/admin/feedback",
       name: "Feedback",
       icon: <MessageSquare className="h-5 w-5" />,
     },
     {
-      path: "/reports",
+      path: "/admin/reports",
       name: "Reports",
       icon: <BarChart className="h-5 w-5" />,
     },

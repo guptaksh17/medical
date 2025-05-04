@@ -1,7 +1,12 @@
 import React from "react";
-import { Heart } from "lucide-react";
+import { Heart, LogOut, HelpCircle, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export function Header() {
+interface HeaderProps {
+  onLogout?: () => void;
+}
+
+export function Header({ onLogout }: HeaderProps) {
   return (
     <header className="bg-white shadow-md">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -11,8 +16,25 @@ export function Header() {
         </div>
         <div className="flex items-center space-x-4">
           <div className="hidden md:flex space-x-4">
-            <button className="text-neutral-500 hover:text-primary">Help</button>
-            <button className="text-neutral-500 hover:text-primary">Settings</button>
+            <Button variant="ghost" size="sm" className="text-neutral-500 hover:text-primary">
+              <HelpCircle className="h-4 w-4 mr-1" />
+              Help
+            </Button>
+            <Button variant="ghost" size="sm" className="text-neutral-500 hover:text-primary">
+              <Settings className="h-4 w-4 mr-1" />
+              Settings
+            </Button>
+            {onLogout && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-neutral-500 hover:text-destructive"
+                onClick={onLogout}
+              >
+                <LogOut className="h-4 w-4 mr-1" />
+                Logout
+              </Button>
+            )}
           </div>
           <div className="flex items-center space-x-2">
             <span className="text-sm font-medium hidden md:inline">Admin</span>

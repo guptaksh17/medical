@@ -1,10 +1,23 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import passport from "passport";
+import session from "express-session";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Set up session
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'appointment_scheduler_secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
 
 app.use((req, res, next) => {
   const start = Date.now();

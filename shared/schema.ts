@@ -1,51 +1,50 @@
-import { pgTable, text, serial, integer, date, time, timestamp, boolean, primaryKey, varchar, pgEnum } from 'drizzle-orm/pg-core';
+import { mysqlTable, text, serial, int, date, time, timestamp, boolean, primaryKey, varchar, mysqlEnum } from 'drizzle-orm/mysql-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { relations } from 'drizzle-orm';
 import { z } from 'zod';
 
-// Create enum type for appointment status
-export const appointmentStatusEnum = pgEnum('appointment_status', ['Pending', 'Confirmed', 'Cancelled']);
-
-// Create enum type for feedback giver and receiver
-export const personTypeEnum = pgEnum('person_type', ['Patient', 'Doctor']);
+// Define enum types as string literals for MySQL
+export type AppointmentStatus = 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled';
+export type PersonType = 'Patient' | 'Doctor';
 
 // Patient Table
-export const patients = pgTable('patients', {
-  id: serial('id').primaryKey(),
-  name: text('name').notNull(),
+export const patients = mysqlTable('patients', {
+  id: serial('id').primaryKey(), // Patient_ID in MySQL
+  name: varchar('name', { length: 255 }),
   bloodGroup: varchar('blood_group', { length: 10 }),
   dob: date('dob'),
   address: text('address'),
-  phone: varchar('phone', { length: 10 }).notNull(),
-  email: varchar('email', { length: 255 }).notNull().unique(),
+  phone: varchar('phone', { length: 10 }),
+  email: varchar('email', { length: 255 }).unique(),
+  password: varchar('password', { length: 255 }),
 });
 
 // Doctor Table
-export const doctors = pgTable('doctors', {
-  id: serial('id').primaryKey(),
-  name: text('name').notNull(),
-  phone: varchar('phone', { length: 10 }).notNull(),
+export const doctors = mysqlTable('doctors', {
+  id: serial('id').primaryKey(), // Doctor_ID in MySQL
+  name: varchar('name', { length: 255 }),
+  phone: varchar('phone', { length: 10 }),
   address: text('address'),
-  expertise: varchar('expertise', { length: 100 }).notNull(),
-  experience: integer('experience').notNull(),
+  expertise: varchar('expertise', { length: 100 }),
+  experience: int('experience'),
   gender: varchar('gender', { length: 10 }),
 });
 
 // Appointment Table
-export const appointments = pgTable('appointments', {
-  id: serial('id').primaryKey(),
-  patientId: integer('patient_id').references(() => patients.id),
-  doctorId: integer('doctor_id').references(() => doctors.id),
+export const appointments = mysqlTable('appointments', {
+  id: serial('id').primaryKey(), // Appointment_ID in MySQL
+  patientId: int('patient_id').references(() => patients.id), // Patient_ID in MySQL
+  doctorId: int('doctor_id').references(() => doctors.id), // Doctor_ID in MySQL
   specialization: varchar('specialization', { length: 100 }),
-  date: date('date').notNull(),
-  time: time('time').notNull(),
-  status: appointmentStatusEnum('status').default('Pending'),
+  date: date('date'),
+  time: time('time'),
+  status: mysqlEnum('status', ['Pending', 'Confirmed', 'Completed', 'Cancelled']).default('Pending'),
 });
 
 // Schedule Table (Mapping Appointment and Patient)
-export const schedules = pgTable('schedules', {
-  appointmentId: integer('appointment_id').references(() => appointments.id, { onDelete: 'cascade' }),
-  patientId: integer('patient_id').references(() => patients.id, { onDelete: 'cascade' }),
+export const schedules = mysqlTable('schedules', {
+  appointmentId: int('appointment_id').references(() => appointments.id, { onDelete: 'cascade' }),
+  patientId: int('patient_id').references(() => patients.id, { onDelete: 'cascade' }),
 }, (table) => {
   return {
     pk: primaryKey({ columns: [table.appointmentId, table.patientId] })
@@ -53,23 +52,23 @@ export const schedules = pgTable('schedules', {
 });
 
 // Feedback Table
-export const feedback = pgTable('feedback', {
-  id: serial('id').primaryKey(),
-  appointmentId: integer('appointment_id').references(() => appointments.id),
-  givenBy: personTypeEnum('given_by').notNull(),
-  givenById: integer('given_by_id').notNull(),
-  receiverId: integer('receiver_id').notNull(),
-  receiverType: personTypeEnum('receiver_type').notNull(),
+export const feedback = mysqlTable('feedback', {
+  id: serial('id').primaryKey(), // Feedback_ID in MySQL
+  appointmentId: int('appointment_id').references(() => appointments.id),
+  givenBy: mysqlEnum('given_by', ['Patient', 'Doctor']), // Given_By in MySQL
+  givenById: int('given_by_id'), // Given_By_ID in MySQL
+  receiverId: int('receiver_id'), // Receiver_ID in MySQL
+  receiverType: mysqlEnum('receiver_type', ['Patient', 'Doctor']), // Receiver_Type in MySQL
   comments: text('comments'),
-  rating: integer('rating').notNull(),
-  date: timestamp('date').defaultNow().notNull(),
+  rating: int('rating'),
+  date: timestamp('date').defaultNow(), // Date in MySQL with DEFAULT CURRENT_TIMESTAMP
 });
 
 // Admin Table
-export const admins = pgTable('admins', {
-  id: serial('id').primaryKey(),
+export const admins = mysqlTable('admins', {
+  id: serial('id').primaryKey(), // Admin_ID in MySQL
   username: varchar('username', { length: 50 }).notNull().unique(),
-  password: varchar('password', { length: 255 }).notNull(),
+  password: varchar('password', { length: 255 }).notNull(), // hashed password
 });
 
 // Define relations
@@ -116,13 +115,16 @@ export const feedbackRelations = relations(feedback, ({ one }) => ({
 // Validation schemas
 export const patientInsertSchema = createInsertSchema(patients, {
   name: (schema) => schema.min(2, "Name must be at least 2 characters"),
-  phone: (schema) => schema.min(10, "Phone must be at least 10 digits").max(10, "Phone cannot exceed 10 digits"),
+  phone: (schema) => schema.min(10, "Phone must be at least 10 digits").max(10, "Phone cannot exceed 10 digits")
+    .regex(/^[0-9]{10}$/, "Phone must contain only digits"),
   email: (schema) => schema.email("Please provide a valid email"),
+  password: (schema) => schema.min(6, "Password must be at least 6 characters"),
 });
 
 export const doctorInsertSchema = createInsertSchema(doctors, {
   name: (schema) => schema.min(2, "Name must be at least 2 characters"),
-  phone: (schema) => schema.min(10, "Phone must be at least 10 digits").max(10, "Phone cannot exceed 10 digits"),
+  phone: (schema) => schema.min(10, "Phone must be at least 10 digits").max(10, "Phone cannot exceed 10 digits")
+    .regex(/^[0-9]{10}$/, "Phone must contain only digits"),
   expertise: (schema) => schema.min(2, "Expertise must be at least 2 characters"),
   experience: (schema) => schema.min(0, "Experience cannot be negative"),
 });
@@ -132,10 +134,19 @@ export const appointmentInsertSchema = createInsertSchema(appointments, {
   doctorId: (schema) => schema.min(1, "Doctor is required"),
   date: (schema) => schema,
   time: (schema) => schema,
+  status: (schema) => schema.refine(val => ['Pending', 'Confirmed', 'Completed', 'Cancelled'].includes(val), {
+    message: "Status must be one of: Pending, Confirmed, Completed, Cancelled"
+  }),
 });
 
 export const feedbackInsertSchema = createInsertSchema(feedback, {
   rating: (schema) => schema.min(1, "Rating must be at least 1").max(5, "Rating cannot exceed 5"),
+  givenBy: (schema) => schema.refine(val => ['Patient', 'Doctor'].includes(val), {
+    message: "Given By must be either Patient or Doctor"
+  }),
+  receiverType: (schema) => schema.refine(val => ['Patient', 'Doctor'].includes(val), {
+    message: "Receiver Type must be either Patient or Doctor"
+  }),
 });
 
 export const adminInsertSchema = createInsertSchema(admins, {

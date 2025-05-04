@@ -26,12 +26,7 @@ export default function Feedback({ isForm = false, appointmentId }: FeedbackProp
     <>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">Feedback</h2>
-        <Link href="/appointments">
-          <Button className="flex items-center">
-            <MessageCircleHeartIcon className="h-4 w-4 mr-1" />
-            Provide Feedback
-          </Button>
-        </Link>
+        {/* Provide Feedback button removed */}
       </div>
       <FeedbackList />
     </>

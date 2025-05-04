@@ -1,27 +1,27 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { 
+import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow 
+  TableRow
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { 
-  DownloadIcon, 
-  FilterIcon, 
-  SearchIcon, 
+import {
+  DownloadIcon,
+  FilterIcon,
+  SearchIcon,
   Loader2,
   Pencil,
   Trash,
@@ -37,38 +37,55 @@ export function PatientList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [bloodGroup, setBloodGroup] = useState('all');
   const { toast } = useToast();
-  
-  const { data: patients, isLoading } = useQuery<Patient[]>({
+
+  const { data: patients, isLoading, error } = useQuery<Patient[]>({
     queryKey: ['/api/patients', searchTerm, bloodGroup],
     queryFn: async ({ queryKey }) => {
       const [base, search, blood] = queryKey;
       const url = new URL(base as string, window.location.origin);
-      
-      if (search) url.searchParams.append('search', search as string);
+
+      if (search) url.searchParams.append('searchTerm', search as string);
       if (blood && blood !== 'all') url.searchParams.append('bloodGroup', blood as string);
-      
+
+      console.log("Fetching patients from:", url.toString());
+
+      // Get the token from localStorage
+      const token = localStorage.getItem('token');
+
       const response = await fetch(url.toString(), {
-        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to fetch patients');
+        const errorText = await response.text();
+        console.error("Error fetching patients:", response.status, errorText);
+        throw new Error(`Failed to fetch patients: ${response.status} ${errorText}`);
       }
-      
-      return response.json();
+
+      const data = await response.json();
+      console.log("Patients data:", data);
+      return data;
     }
   });
-  
+
+  // Log any errors
+  if (error) {
+    console.error("Error in patients query:", error);
+  }
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // The queryKey will handle the refetch based on state changes
+    // The search is handled automatically through the queryKey dependencies
+    console.log("Searching for:", searchTerm, "with blood group:", bloodGroup);
   };
-  
+
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this patient? This action cannot be undone.')) {
       return;
     }
-    
+
     try {
       await apiRequest('DELETE', `/api/patients/${id}`);
       queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
@@ -84,7 +101,7 @@ export function PatientList() {
       });
     }
   };
-  
+
   const bloodGroups = [
     { value: 'all', label: 'All Blood Groups' },
     { value: 'O+', label: 'O+' },
@@ -96,7 +113,7 @@ export function PatientList() {
     { value: 'AB+', label: 'AB+' },
     { value: 'AB-', label: 'AB-' }
   ];
-  
+
   return (
     <div className="bg-white rounded-lg shadow mb-6">
       <div className="p-5">
@@ -128,19 +145,10 @@ export function PatientList() {
               </SelectContent>
             </Select>
           </form>
-          
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm">
-              <DownloadIcon className="h-4 w-4 mr-1" />
-              Export
-            </Button>
-            <Button variant="outline" size="sm">
-              <FilterIcon className="h-4 w-4 mr-1" />
-              Filter
-            </Button>
-          </div>
+
+          {/* Export and Filter buttons removed */}
         </div>
-        
+
         {isLoading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -179,21 +187,21 @@ export function PatientList() {
                       <TableCell>{formatDate(patient.dob) || 'N/A'}</TableCell>
                       <TableCell>
                         <div className="flex space-x-3">
-                          <Link href={`/patients/view/${patient.id}`}>
+                          <Link href={`/admin/patients/view/${patient.id}`}>
                             <Button variant="link" size="sm" className="text-primary">
                               <Eye className="h-4 w-4 mr-1" />
                               View
                             </Button>
                           </Link>
-                          <Link href={`/patients/edit/${patient.id}`}>
+                          <Link href={`/admin/patients/edit/${patient.id}`}>
                             <Button variant="link" size="sm" className="text-primary">
                               <Pencil className="h-4 w-4 mr-1" />
                               Edit
                             </Button>
                           </Link>
-                          <Button 
-                            variant="link" 
-                            size="sm" 
+                          <Button
+                            variant="link"
+                            size="sm"
                             className="text-destructive"
                             onClick={() => handleDelete(patient.id)}
                           >
@@ -215,7 +223,7 @@ export function PatientList() {
             </Table>
           </div>
         )}
-        
+
         {patients && patients.length > 0 && (
           <div className="flex items-center justify-between mt-6">
             <div className="text-sm text-neutral-700">

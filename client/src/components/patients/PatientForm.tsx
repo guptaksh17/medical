@@ -68,10 +68,10 @@ export function PatientForm({ patientId, isEditMode = false }: PatientFormProps)
     enabled: isEditMode && !!patientId,
     onSuccess: (data) => {
       // Format date as YYYY-MM-DD for the input field
-      const formattedDob = data.dob 
+      const formattedDob = data.dob
         ? new Date(data.dob).toISOString().split('T')[0]
         : '';
-        
+
       form.reset({
         name: data.name,
         bloodGroup: data.bloodGroup || "",
@@ -106,7 +106,7 @@ export function PatientForm({ patientId, isEditMode = false }: PatientFormProps)
         description: `Patient ${isEditMode ? "updated" : "created"} successfully`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
-      navigate("/patients");
+      navigate("/admin/patients");
     },
     onError: (error) => {
       toast({
@@ -261,7 +261,7 @@ export function PatientForm({ patientId, isEditMode = false }: PatientFormProps)
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate("/patients")}
+                onClick={() => navigate("/admin/patients")}
               >
                 Cancel
               </Button>

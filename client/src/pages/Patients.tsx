@@ -19,7 +19,7 @@ interface PatientsProps {
 
 export default function Patients({ isForm = false, isEditMode = false, isView = false, id }: PatientsProps) {
   const patientId = id ? parseInt(id) : undefined;
-  
+
   const { data: patient, isLoading } = useQuery<Patient>({
     queryKey: [`/api/patients/${patientId}`],
     enabled: isView && !!patientId,
@@ -49,7 +49,7 @@ export default function Patients({ isForm = false, isEditMode = false, isView = 
           <h2 className="text-2xl font-bold text-neutral-700">Patient Not Found</h2>
           <p className="mt-2 text-neutral-600">The patient you're looking for doesn't exist or has been removed.</p>
           <Button className="mt-4" asChild>
-            <Link href="/patients">Back to Patients</Link>
+            <Link href="/admin/patients">Back to Patients</Link>
           </Button>
         </div>
       );
@@ -59,7 +59,7 @@ export default function Patients({ isForm = false, isEditMode = false, isView = 
       <>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Patient Details</h2>
-          <Link href={`/patients/edit/${patientId}`}>
+          <Link href={`/admin/patients/edit/${patientId}`}>
             <Button>Edit Patient</Button>
           </Link>
         </div>
@@ -120,12 +120,7 @@ export default function Patients({ isForm = false, isEditMode = false, isView = 
     <>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">Patients</h2>
-        <Link href="/patients/new">
-          <Button className="flex items-center">
-            <Plus className="h-4 w-4 mr-1" />
-            Add Patient
-          </Button>
-        </Link>
+        {/* Add Patient button removed */}
       </div>
       <PatientList />
     </>

@@ -32,12 +32,7 @@ export default function Appointments({ isForm = false, isEditMode = false, id }:
     <>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">Appointments</h2>
-        <Link href="/appointments/new">
-          <Button className="flex items-center">
-            <Plus className="h-4 w-4 mr-1" />
-            New Appointment
-          </Button>
-        </Link>
+        {/* New Appointment button removed */}
       </div>
 
       <div className="bg-white rounded-lg shadow mb-6">
@@ -47,11 +42,11 @@ export default function Appointments({ isForm = false, isEditMode = false, id }:
               <TabsTrigger value="calendar">Calendar View</TabsTrigger>
               <TabsTrigger value="list">List View</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="calendar" className="mt-0">
               <AppointmentCalendar />
             </TabsContent>
-            
+
             <TabsContent value="list" className="mt-0">
               <AppointmentList />
             </TabsContent>

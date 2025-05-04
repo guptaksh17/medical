@@ -101,7 +101,7 @@ export function DoctorForm({ doctorId, isEditMode = false }: DoctorFormProps) {
         description: `Doctor ${isEditMode ? "updated" : "created"} successfully`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/doctors'] });
-      navigate("/doctors");
+      navigate("/admin/doctors");
     },
     onError: (error) => {
       toast({
@@ -283,7 +283,7 @@ export function DoctorForm({ doctorId, isEditMode = false }: DoctorFormProps) {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate("/doctors")}
+                onClick={() => navigate("/admin/doctors")}
               >
                 Cancel
               </Button>

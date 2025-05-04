@@ -1,27 +1,27 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { 
+import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow 
+  TableRow
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { 
-  DownloadIcon, 
-  FilterIcon, 
-  SearchIcon, 
+import {
+  DownloadIcon,
+  FilterIcon,
+  SearchIcon,
   Loader2,
   Pencil,
   Trash,
@@ -38,38 +38,38 @@ export function AppointmentList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all_statuses');
   const { toast } = useToast();
-  
+
   const { data: appointments, isLoading } = useQuery<AppointmentWithRelations[]>({
     queryKey: ['/api/appointments', searchTerm, statusFilter],
     queryFn: async ({ queryKey }) => {
       const [base, search, status] = queryKey;
       const url = new URL(base as string, window.location.origin);
-      
+
       if (search) url.searchParams.append('search', search as string);
       if (status && status !== 'all_statuses') url.searchParams.append('status', status as string);
-      
+
       const response = await fetch(url.toString(), {
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch appointments');
       }
-      
+
       return response.json();
     }
   });
-  
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     // The queryKey will handle the refetch based on state changes
   };
-  
+
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this appointment? This action cannot be undone.')) {
       return;
     }
-    
+
     try {
       await apiRequest('DELETE', `/api/appointments/${id}`);
       queryClient.invalidateQueries({ queryKey: ['/api/appointments'] });
@@ -90,16 +90,16 @@ export function AppointmentList() {
     if (!confirm(`Are you sure you want to mark this appointment as ${status}?`)) {
       return;
     }
-    
+
     const appointment = appointments?.find(a => a.id === id);
     if (!appointment) return;
-    
+
     try {
       await apiRequest('PUT', `/api/appointments/${id}`, {
         ...appointment,
         status
       });
-      
+
       queryClient.invalidateQueries({ queryKey: ['/api/appointments'] });
       toast({
         title: "Success",
@@ -113,7 +113,7 @@ export function AppointmentList() {
       });
     }
   };
-  
+
   return (
     <>
       <div className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0 mb-6">
@@ -143,19 +143,10 @@ export function AppointmentList() {
             </SelectContent>
           </Select>
         </form>
-        
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <DownloadIcon className="h-4 w-4 mr-1" />
-            Export
-          </Button>
-          <Button variant="outline" size="sm">
-            <FilterIcon className="h-4 w-4 mr-1" />
-            Filter
-          </Button>
-        </div>
+
+        {/* Export and Filter buttons removed */}
       </div>
-      
+
       {isLoading ? (
         <div className="flex justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -200,13 +191,13 @@ export function AppointmentList() {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        <Link href={`/appointments/edit/${appointment.id}`}>
+                        <Link href={`/admin/appointments/edit/${appointment.id}`}>
                           <Button variant="link" size="sm" className="text-primary p-0 h-auto">
                             <Pencil className="h-4 w-4 mr-1" />
                             Edit
                           </Button>
                         </Link>
-                        
+
                         {appointment.status === 'Pending' && (
                           <Button
                             variant="link"
@@ -218,7 +209,7 @@ export function AppointmentList() {
                             Confirm
                           </Button>
                         )}
-                        
+
                         {appointment.status !== 'Cancelled' && (
                           <Button
                             variant="link"
@@ -245,7 +236,7 @@ export function AppointmentList() {
           </Table>
         </div>
       )}
-      
+
       {appointments && appointments.length > 0 && (
         <div className="flex items-center justify-between mt-6">
           <div className="text-sm text-neutral-700">

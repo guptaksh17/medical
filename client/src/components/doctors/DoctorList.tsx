@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { 
+import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow 
+  TableRow
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,10 +18,10 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { 
-  DownloadIcon, 
-  FilterIcon, 
-  SearchIcon, 
+import {
+  DownloadIcon,
+  FilterIcon,
+  SearchIcon,
   Loader2,
   Pencil,
   Trash,
@@ -36,38 +36,41 @@ export function DoctorList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [expertise, setExpertise] = useState('all');
   const { toast } = useToast();
-  
+
   const { data: doctors, isLoading } = useQuery<Doctor[]>({
     queryKey: ['/api/doctors', searchTerm, expertise],
     queryFn: async ({ queryKey }) => {
       const [base, search, exp] = queryKey;
-      const url = new URL(base as string, window.location.origin);
-      
-      if (search) url.searchParams.append('search', search as string);
-      if (exp && exp !== 'all') url.searchParams.append('expertise', exp as string);
-      
-      const response = await fetch(url.toString(), {
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch doctors');
+      let url = base as string;
+
+      // Add query parameters
+      const params = new URLSearchParams();
+      if (search) params.append('searchTerm', search as string);
+      if (exp && exp !== 'all') params.append('expertise', exp as string);
+
+      // Append params if any exist
+      const queryParams = params.toString();
+      if (queryParams) {
+        url = `${url}?${queryParams}`;
       }
-      
+
+      // Use the apiRequest function to include the authorization header
+      const response = await apiRequest('GET', url);
       return response.json();
     }
   });
-  
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // The queryKey will handle the refetch based on state changes
+    // The search is handled automatically through the queryKey dependencies
+    console.log("Searching for:", searchTerm, "with expertise:", expertise);
   };
-  
+
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this doctor? This action cannot be undone.')) {
       return;
     }
-    
+
     try {
       await apiRequest('DELETE', `/api/doctors/${id}`);
       queryClient.invalidateQueries({ queryKey: ['/api/doctors'] });
@@ -83,12 +86,12 @@ export function DoctorList() {
       });
     }
   };
-  
+
   // Get unique expertise values from doctors for the filter dropdown
   const expertiseOptions = doctors
     ? Array.from(new Set(doctors.map((d) => d.expertise)))
     : [];
-  
+
   return (
     <div className="bg-white rounded-lg shadow mb-6">
       <div className="p-5">
@@ -121,19 +124,10 @@ export function DoctorList() {
               </SelectContent>
             </Select>
           </form>
-          
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm">
-              <DownloadIcon className="h-4 w-4 mr-1" />
-              Export
-            </Button>
-            <Button variant="outline" size="sm">
-              <FilterIcon className="h-4 w-4 mr-1" />
-              Filter
-            </Button>
-          </div>
+
+          {/* Export and Filter buttons removed */}
         </div>
-        
+
         {isLoading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -159,7 +153,7 @@ export function DoctorList() {
                       <TableCell>
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-8 w-8 rounded-full bg-secondary-100 flex items-center justify-center text-secondary-700">
-                            {doctor.name.split(' ').filter(name => name.startsWith('Dr.')).length > 0 
+                            {doctor.name.split(' ').filter(name => name.startsWith('Dr.')).length > 0
                               ? doctor.name.split(' ').filter(name => !name.startsWith('Dr.')).map(n => n[0]).join('')
                               : doctor.name.split(' ').map(n => n[0]).join('')}
                           </div>
@@ -174,21 +168,21 @@ export function DoctorList() {
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-3">
-                          <Link href={`/doctors/view/${doctor.id}`}>
+                          <Link href={`/admin/doctors/view/${doctor.id}`}>
                             <Button variant="link" size="sm" className="text-primary">
                               <Eye className="h-4 w-4 mr-1" />
                               View
                             </Button>
                           </Link>
-                          <Link href={`/doctors/edit/${doctor.id}`}>
+                          <Link href={`/admin/doctors/edit/${doctor.id}`}>
                             <Button variant="link" size="sm" className="text-primary">
                               <Pencil className="h-4 w-4 mr-1" />
                               Edit
                             </Button>
                           </Link>
-                          <Button 
-                            variant="link" 
-                            size="sm" 
+                          <Button
+                            variant="link"
+                            size="sm"
                             className="text-destructive"
                             onClick={() => handleDelete(doctor.id)}
                           >
@@ -210,7 +204,7 @@ export function DoctorList() {
             </Table>
           </div>
         )}
-        
+
         {doctors && doctors.length > 0 && (
           <div className="flex items-center justify-between mt-6">
             <div className="text-sm text-neutral-700">

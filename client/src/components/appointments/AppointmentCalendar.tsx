@@ -3,12 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
 import { Link } from "wouter";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
@@ -19,26 +19,26 @@ import { formatTime } from "@/lib/utils/date-utils";
 export function AppointmentCalendar() {
   const [date, setDate] = useState<Date>(new Date());
   const [view, setView] = useState<"month" | "week" | "day">("month");
-  
+
   // Fetch appointments
   const { data: appointments, isLoading } = useQuery<AppointmentWithRelations[]>({
     queryKey: ['/api/appointments'],
   });
-  
+
   // Filter appointments for the selected date
   const appointmentsForDate = React.useMemo(() => {
     if (!appointments) return [];
-    
+
     return appointments.filter(appointment => {
       const appointmentDate = parseISO(appointment.date.toString());
       return isSameDay(appointmentDate, date);
     });
   }, [appointments, date]);
-  
+
   // Group appointments by doctor
   const appointmentsByDoctor = React.useMemo(() => {
     if (!appointmentsForDate || appointmentsForDate.length === 0) return {};
-    
+
     const grouped = appointmentsForDate.reduce((acc, appointment) => {
       const doctorId = appointment.doctor.id;
       if (!acc[doctorId]) {
@@ -50,27 +50,27 @@ export function AppointmentCalendar() {
       acc[doctorId].appointments.push(appointment);
       return acc;
     }, {});
-    
+
     return grouped;
   }, [appointmentsForDate]);
-  
+
   // Get dates with appointments for highlighting in the calendar
   const datesWithAppointments = React.useMemo(() => {
     if (!appointments) return [];
-    
-    return appointments.map(appointment => 
+
+    return appointments.map(appointment =>
       parseISO(appointment.date.toString())
     );
   }, [appointments]);
-  
+
   const handlePreviousMonth = () => {
     setDate(prevDate => subMonths(prevDate, 1));
   };
-  
+
   const handleNextMonth = () => {
     setDate(prevDate => addMonths(prevDate, 1));
   };
-  
+
   const handleToday = () => {
     setDate(new Date());
   };
@@ -82,13 +82,15 @@ export function AppointmentCalendar() {
         return "border-l-2 border-green-500 bg-green-50";
       case "Pending":
         return "border-l-2 border-yellow-500 bg-yellow-50";
+      case "Completed":
+        return "border-l-2 border-blue-500 bg-blue-50";
       case "Cancelled":
         return "border-l-2 border-red-500 bg-red-50";
       default:
         return "border-l-2 border-gray-500 bg-gray-50";
     }
   };
-  
+
   return (
     <div>
       <div className="flex items-center justify-between p-4 border-b border-neutral-200">
@@ -120,7 +122,7 @@ export function AppointmentCalendar() {
           </Select>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
         <div className="col-span-1">
           <Calendar
@@ -133,7 +135,7 @@ export function AppointmentCalendar() {
               booked: datesWithAppointments
             }}
             modifiersStyles={{
-              booked: { 
+              booked: {
                 fontWeight: 'bold',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 borderRadius: '50%'
@@ -141,13 +143,13 @@ export function AppointmentCalendar() {
             }}
           />
         </div>
-        
+
         <div className="col-span-1 md:col-span-2">
           <Card className="p-4">
             <h3 className="font-semibold mb-4">
               Appointments for {format(date, 'MMMM d, yyyy')}
             </h3>
-            
+
             {isLoading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -163,7 +165,7 @@ export function AppointmentCalendar() {
                         </h4>
                         <div className="space-y-2">
                           {group.appointments.map((appointment: AppointmentWithRelations) => (
-                            <div 
+                            <div
                               key={appointment.id}
                               className={`p-2 rounded text-sm ${getAppointmentStatusClass(appointment.status)}`}
                             >
@@ -172,7 +174,7 @@ export function AppointmentCalendar() {
                                   <span className="font-medium">{formatTime(appointment.time)}</span> - {appointment.patient.name}
                                 </div>
                                 <div>
-                                  <Link href={`/appointments/edit/${appointment.id}`}>
+                                  <Link href={`/admin/appointments/edit/${appointment.id}`}>
                                     <Button variant="ghost" size="sm" className="h-6 px-2">Edit</Button>
                                   </Link>
                                 </div>
@@ -191,12 +193,8 @@ export function AppointmentCalendar() {
                     No appointments scheduled for this date
                   </div>
                 )}
-                
-                <div className="mt-6 text-center">
-                  <Link href="/appointments/new">
-                    <Button>Schedule New Appointment</Button>
-                  </Link>
-                </div>
+
+                {/* Schedule New Appointment button removed */}
               </div>
             )}
           </Card>

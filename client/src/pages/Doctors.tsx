@@ -19,7 +19,7 @@ interface DoctorsProps {
 
 export default function Doctors({ isForm = false, isEditMode = false, isView = false, id }: DoctorsProps) {
   const doctorId = id ? parseInt(id) : undefined;
-  
+
   const { data: doctor, isLoading } = useQuery<Doctor>({
     queryKey: [`/api/doctors/${doctorId}`],
     enabled: isView && !!doctorId,
@@ -57,7 +57,7 @@ export default function Doctors({ isForm = false, isEditMode = false, isView = f
           <h2 className="text-2xl font-bold text-neutral-700">Doctor Not Found</h2>
           <p className="mt-2 text-neutral-600">The doctor you're looking for doesn't exist or has been removed.</p>
           <Button className="mt-4" asChild>
-            <Link href="/doctors">Back to Doctors</Link>
+            <Link href="/admin/doctors">Back to Doctors</Link>
           </Button>
         </div>
       );
@@ -81,7 +81,7 @@ export default function Doctors({ isForm = false, isEditMode = false, isView = f
               <div>
                 <div className="flex items-center mb-6">
                   <div className="w-16 h-16 rounded-full bg-secondary-100 flex items-center justify-center text-secondary-700 text-xl font-semibold mr-4">
-                    {doctor.name.split(' ').filter(name => name.startsWith('Dr.')).length > 0 
+                    {doctor.name.split(' ').filter(name => name.startsWith('Dr.')).length > 0
                       ? doctor.name.split(' ').filter(name => !name.startsWith('Dr.')).map(n => n[0]).join('')
                       : doctor.name.split(' ').map(n => n[0]).join('')}
                   </div>
@@ -138,7 +138,7 @@ export default function Doctors({ isForm = false, isEditMode = false, isView = f
     <>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">Doctors</h2>
-        <Link href="/doctors/new">
+        <Link href="/admin/doctors/new">
           <Button className="flex items-center">
             <Plus className="h-4 w-4 mr-1" />
             Add Doctor

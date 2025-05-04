@@ -1,5 +1,5 @@
 import { db } from "@db";
-import { 
+import {
   patients,
   doctors,
   appointments,
@@ -15,6 +15,7 @@ import {
 } from "@shared/schema";
 import { eq, and, or, desc, gte, like, sql } from "drizzle-orm";
 import { format } from "date-fns";
+import { hashPassword } from "./auth";
 
 export const storage = {
   // Patient methods
@@ -202,7 +203,7 @@ export const storage = {
 
   async insertAppointment(appointment: Omit<Appointment, "id">): Promise<Appointment> {
     const [result] = await db.insert(appointments).values(appointment).returning();
-    
+
     // If the appointment is confirmed, create a schedule entry
     if (result.status === 'Confirmed' && result.patientId) {
       await db.insert(schedules).values({
@@ -210,7 +211,7 @@ export const storage = {
         patientId: result.patientId
       });
     }
-    
+
     return result;
   },
 
@@ -219,14 +220,14 @@ export const storage = {
       .set(appointment)
       .where(eq(appointments.id, id))
       .returning();
-    
+
     // Handle schedule updates based on status changes
     if (result.status === 'Confirmed' && result.patientId) {
       // Check if schedule already exists
       const existingSchedule = await db.query.schedules.findFirst({
         where: eq(schedules.appointmentId, id)
       });
-      
+
       if (!existingSchedule) {
         // Create new schedule if doesn't exist
         await db.insert(schedules).values({
@@ -239,7 +240,7 @@ export const storage = {
       await db.delete(schedules)
         .where(eq(schedules.appointmentId, id));
     }
-    
+
     return result;
   },
 
@@ -247,7 +248,7 @@ export const storage = {
     // Delete related schedules first
     await db.delete(schedules)
       .where(eq(schedules.appointmentId, id));
-    
+
     const [result] = await db.delete(appointments)
       .where(eq(appointments.id, id))
       .returning({ id: appointments.id });
