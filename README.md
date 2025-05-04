@@ -56,10 +56,10 @@ npm install
 
 ```
 DB_HOST=localhost
-DB_USER=rudraksh_admin
-DB_PASSWORD=Kshsrm@1
-DB_NAME=APPOINTMENT_BOOKING
-JWT_SECRET=appointment_scheduler_secret_key
+DB_USER=
+DB_PASSWORD=
+DB_NAME=
+JWT_SECRET=
 PORT=3000
 ```
 
